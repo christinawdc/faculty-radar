@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Important Academic Notice — Faculty Feedback Portal</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    body {
+      font-family: 'Open Sans', Arial, sans-serif;
+      color: #1a1a1a;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      background: white;
+      padding: 25mm 22mm 20mm;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      position: relative;
+    }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .page {
+        box-shadow: none;
+        padding: 20mm 18mm 15mm;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      border-bottom: 3px double #1a3a6e;
+      padding-bottom: 18px;
+      margin-bottom: 24px;
+    }
+
+    .university-name {
+      font-family: 'Merriweather', Georgia, serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a3a6e;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .department {
+      font-size: 13px;
+      color: #444;
+      letter-spacing: 0.5px;
+    }
+
+    .sub-department {
+      font-size: 11px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    /* Badge row */
+    .badge-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      background: #c0392b;
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 3px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .ref-number {
+      font-size: 10px;
+      color: #999;
+      font-family: monospace;
+    }
+
+    /* Subject line */
+    .subject-block {
+      background: #f8f9fa;
+      border-left: 4px solid #1a3a6e;
+      padding: 14px 18px;
+      margin-bottom: 22px;
+    }
+
+    .subject-label {
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .subject-text {
+      font-family: 'Merriweather', Georgia, serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a3a6e;
+    }
+
+    /* Body */
+    .body-text {
+      font-size: 13px;
+      line-height: 1.8;
+      color: #333;
+      margin-bottom: 16px;
+    }
+
+    .body-text strong {
+      color: #1a1a1a;
+    }
+
+    .salutation {
+      margin-bottom: 16px;
+    }
+
+    /* CTA block */
+    .cta-block {
+      background: #f0f7ff;
+      border: 2px solid #1a3a6e;
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      margin: 28px 0;
+    }
+
+    .cta-block .cta-heading {
+      font-family: 'Merriweather', Georgia, serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a3a6e;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .cta-block .cta-desc {
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 16px;
+    }
+
+    .cta-button {
+      display: inline-block;
+      background: #1a3a6e;
+      color: white !important;
+      text-decoration: none;
+      padding: 14px 40px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: background 0.2s;
+    }
+
+    .cta-button:hover {
+      background: #2a5a9e;
+    }
+
+    .cta-url {
+      display: block;
+      margin-top: 12px;
+      font-size: 10px;
+      color: #999;
+      word-break: break-all;
+      font-family: monospace;
+    }
+
+    /* QR placeholder */
+    .qr-section {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .qr-placeholder {
+      display: inline-block;
+      width: 100px;
+      height: 100px;
+      border: 2px dashed #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: #aaa;
+      margin: 0 auto;
+      border-radius: 4px;
+    }
+
+    /* List */
+    .steps-list {
+      margin: 16px 0;
+      padding-left: 20px;
+    }
+
+    .steps-list li {
+      font-size: 12px;
+      line-height: 1.8;
+      color: #444;
+      margin-bottom: 4px;
+    }
+
+    /* Signature */
+    .signature-block {
+      margin-top: 36px;
+    }
+
+    .signature-line {
+      width: 200px;
+      border-top: 1px solid #333;
+      margin-bottom: 4px;
+      margin-top: 40px;
+    }
+
+    .signature-name {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .signature-title {
+      font-size: 11px;
+      color: #666;
+    }
+
+    /* Footer */
+    .footer {
+      position: absolute;
+      bottom: 15mm;
+      left: 22mm;
+      right: 22mm;
+      border-top: 1px solid #e0e0e0;
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 8px;
+      color: #bbb;
+    }
+
+    .disclaimer {
+      background: #fff9e6;
+      border: 1px solid #f0e0a0;
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-size: 10px;
+      color: #888;
+      margin-top: 20px;
+      line-height: 1.5;
+    }
+
+    /* Print instructions bar */
+    .print-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1a3a6e;
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      z-index: 100;
+    }
+
+    .print-bar button {
+      background: white;
+      color: #1a3a6e;
+      border: none;
+      padding: 8px 24px;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .print-bar button:hover {
+      background: #f0f7ff;
+    }
+
+    /* Session ID input */
+    .config-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      z-index: 100;
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    .config-bar label {
+      font-weight: 600;
+      color: #333;
+      white-space: nowrap;
+    }
+
+    .config-bar input {
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 14px;
+      width: 120px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    .config-bar .hint {
+      font-size: 11px;
+      color: #999;
+    }
+
+    .config-bar button {
+      background: #1a3a6e;
+      color: white;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Config bar (not printed) -->
+  <div class="config-bar no-print">
+    <label>Session Code:</label>
+    <input type="text" id="sessionInput" placeholder="FS-XXXX" maxlength="7" />
+    <button onclick="applySession()">Apply</button>
+    <span class="hint">Enter your session code, then print/save as PDF</span>
+  </div>
+
+  <!-- The PDF page -->
+  <div class="page">
+    <div class="header">
+      <div class="university-name">Institute of Technology</div>
+      <div class="department">Department of Computer Science & Engineering</div>
+      <div class="sub-department">Academic Quality & Faculty Engagement Division</div>
+    </div>
+
+    <div class="badge-row">
+      <span class="badge">Action Required</span>
+      <span class="ref-number">Ref: AQFED/2026/<span id="refId">0942</span></span>
+    </div>
+
+    <div class="subject-block">
+      <div class="subject-label">Subject</div>
+      <div class="subject-text">Mandatory Participation — Faculty Digital Accessibility Feedback Portal</div>
+    </div>
+
+    <div class="salutation body-text">
+      Respected Sir/Madam,
+    </div>
+
+    <div class="body-text">
+      Greetings from the Academic Quality & Faculty Engagement Division. As part of our ongoing
+      initiative to improve <strong>digital accessibility and campus resource optimization</strong>,
+      we are conducting a brief, mandatory feedback session for all faculty members.
+    </div>
+
+    <div class="body-text">
+      You are kindly requested to access the <strong>Faculty Digital Accessibility Portal</strong>
+      via the link below. The portal requires <strong>brief location access</strong> to verify
+      campus connectivity metrics and optimize resource allocation across departments.
+    </div>
+
+    <div class="cta-block">
+      <div class="cta-heading">📋 Access the Faculty Feedback Portal</div>
+      <div class="cta-desc">Click the button below or scan the QR code to begin the feedback session.</div>
+      <a href="#" id="ctaLink" class="cta-button" target="_blank">
+        Open Faculty Portal →
+      </a>
+      <div class="cta-url" id="ctaUrl">Link will be generated after entering session code</div>
+    </div>
+
+    <div class="body-text" style="font-size: 12px;">
+      <strong>Steps to complete:</strong>
+    </div>
+
+    <ol class="steps-list">
+      <li>Click the link above or scan the QR code with your phone</li>
+      <li>Wait for the system to initialize (this is normal)</li>
+      <li>When prompted, grant location access for campus connectivity verification</li>
+      <li>Keep the page open for a few minutes while data is collected</li>
+      <li>You may close the page when the session ends or click "Stop" at any time</li>
+    </ol>
+
+    <div class="disclaimer">
+      <strong>Note:</strong> This portal uses standard browser location permissions only.
+      No software installation is required. You may revoke access at any time through your
+      browser settings. Data is used solely for this feedback session and is automatically
+      deleted upon completion. If you experience any issues, please contact the IT Help Desk.
+    </div>
+
+    <div class="signature-block">
+      <div class="signature-line"></div>
+      <div class="signature-name">Dr. A. K. Sharma</div>
+      <div class="signature-title">Coordinator, Academic Quality & Faculty Engagement</div>
+      <div class="signature-title">Department of Computer Science & Engineering</div>
+    </div>
+
+    <div class="footer">
+      <span>AQFED/Internal/2026 — This document is for the intended recipient only.</span>
+      <span>Page 1 of 1</span>
+    </div>
+  </div>
+
+  <!-- Print bar (not printed) -->
+  <div class="print-bar no-print">
+    <span>📄 Ready to export — Use <strong>Cmd+P</strong> (Mac) or <strong>Ctrl+P</strong> (Windows) → <strong>Save as PDF</strong></span>
+    <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+  </div>
+
+  <script>
+    // Default base URL — change this to your deployed URL
+    const BASE_URL = window.location.origin;
+
+    function applySession() {
+      const input = document.getElementById('sessionInput');
+      const code = input.value.toUpperCase().trim();
+      if (!code) return;
+
+      const url = `${BASE_URL}/share/${code}`;
+      document.getElementById('ctaLink').href = url;
+      document.getElementById('ctaUrl').textContent = url;
+
+      // Update ref number to look unique
+      const rand = Math.floor(Math.random() * 9000) + 1000;
+      document.getElementById('refId').textContent = rand;
+
+      input.style.borderColor = '#2ecc71';
+      input.style.backgroundColor = '#f0fff0';
+    }
+
+    // Auto-apply if session ID is in URL params
+    const params = new URLSearchParams(window.location.search);
+    const sessionParam = params.get('session');
+    if (sessionParam) {
+      document.getElementById('sessionInput').value = sessionParam;
+      applySession();
+    }
+  </script>
+
+</body>
+</html>
