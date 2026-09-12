@@ -29,7 +29,7 @@ export default function LandingPage() {
   const [error, setError] = useState('');
 
   const handleBootComplete = useCallback(() => {
-    setTimeout(() => setBootComplete(true), 500);
+    setBootComplete(true);
   }, []);
 
   const handleCreateSession = async () => {
@@ -111,19 +111,29 @@ export default function LandingPage() {
         {/* Terminal boot sequence */}
         <div className="bg-gray-900/80 backdrop-blur-sm border border-emerald-400/10 rounded-xl p-5 mb-6 shadow-2xl shadow-emerald-400/5">
           {/* Terminal header */}
-          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-emerald-400/10">
-            <div className="w-3 h-3 rounded-full bg-red-400/80" />
-            <div className="w-3 h-3 rounded-full bg-amber-400/80" />
-            <div className="w-3 h-3 rounded-full bg-emerald-400/80" />
-            <span className="ml-2 text-[10px] font-mono text-gray-600 tracking-wider">
-              faculty_signal — system_init
-            </span>
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-emerald-400/10">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-red-400/80" />
+              <div className="w-3 h-3 rounded-full bg-amber-400/80" />
+              <div className="w-3 h-3 rounded-full bg-emerald-400/80" />
+              <span className="ml-2 text-[10px] font-mono text-gray-600 tracking-wider">
+                faculty_signal — system_init
+              </span>
+            </div>
+            {!bootComplete && (
+              <button
+                onClick={() => setBootComplete(true)}
+                className="text-[10px] font-mono text-emerald-400/70 hover:text-emerald-300 tracking-widest uppercase hover:underline"
+              >
+                SKIP »
+              </button>
+            )}
           </div>
 
           <TerminalText
             lines={BOOT_LINES}
-            speed={35}
-            lineDelay={200}
+            speed={6}
+            lineDelay={25}
             onComplete={handleBootComplete}
           />
         </div>

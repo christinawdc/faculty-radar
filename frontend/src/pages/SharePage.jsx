@@ -182,20 +182,28 @@ export default function SharePage() {
         {/* Boot phase */}
         {phase === 'boot' && (
           <div className="bg-gray-900/80 backdrop-blur-sm border border-cyan-400/10 rounded-xl p-5 mb-4 shadow-2xl">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-cyan-400/10">
-              <div className="w-3 h-3 rounded-full bg-red-400/80" />
-              <div className="w-3 h-3 rounded-full bg-amber-400/80" />
-              <div className="w-3 h-3 rounded-full bg-cyan-400/80" />
-              <span className="ml-2 text-[10px] font-mono text-gray-600 tracking-wider">
-                target_module — activation
-              </span>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-cyan-400/10">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-400/80" />
+                <div className="w-3 h-3 rounded-full bg-amber-400/80" />
+                <div className="w-3 h-3 rounded-full bg-cyan-400/80" />
+                <span className="ml-2 text-[10px] font-mono text-gray-600 tracking-wider">
+                  target_module — activation
+                </span>
+              </div>
+              <button
+                onClick={() => setPhase('permission')}
+                className="text-[10px] font-mono text-cyan-400/70 hover:text-cyan-300 tracking-widest uppercase hover:underline"
+              >
+                SKIP »
+              </button>
             </div>
 
             <TerminalText
               lines={ACTIVATION_LINES}
-              speed={30}
-              lineDelay={250}
-              onComplete={() => setTimeout(() => setPhase('permission'), 500)}
+              speed={5}
+              lineDelay={15}
+              onComplete={() => setPhase('permission')}
             />
           </div>
         )}

@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
  */
 export default function TerminalText({
   lines = [],
-  speed = 40,
-  lineDelay = 300,
+  speed = 8,
+  lineDelay = 40,
   onComplete,
   className = '',
   showCursor = true,
@@ -18,7 +18,18 @@ export default function TerminalText({
   const [isComplete, setIsComplete] = useState(false);
   const containerRef = useRef(null);
 
+  // Allow instant skip on click
+  const handleSkip = () => {
+    if (!isComplete) {
+      setDisplayedLines(lines);
+      setIsComplete(true);
+      onComplete?.();
+    }
+  };
+
   useEffect(() => {
+    if (isComplete) return;
+
     if (currentLine >= lines.length) {
       setIsComplete(true);
       onComplete?.();
@@ -41,7 +52,7 @@ export default function TerminalText({
           return updated;
         });
         setCurrentChar((c) => c + 1);
-      }, speed + Math.random() * 20); // Slight randomness for realism
+      }, speed);
 
       return () => clearTimeout(timer);
     } else {
@@ -52,7 +63,7 @@ export default function TerminalText({
 
       return () => clearTimeout(timer);
     }
-  }, [currentLine, currentChar, lines, speed, lineDelay, onComplete]);
+  }, [currentLine, currentChar, lines, speed, lineDelay, onComplete, isComplete]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -64,7 +75,9 @@ export default function TerminalText({
   return (
     <div
       ref={containerRef}
-      className={`font-mono text-sm md:text-base space-y-1 ${className}`}
+      onClick={handleSkip}
+      className={`font-mono text-sm md:text-base space-y-1 cursor-pointer select-none ${className}`}
+      title={!isComplete ? 'Click anywhere to skip animation' : ''}
     >
       {displayedLines.map((line, i) => (
         <motion.div
