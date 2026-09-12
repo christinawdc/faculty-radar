@@ -156,12 +156,8 @@ export default function TrackerPage() {
 
   // Calculate distance, bearing, direction whenever positions change
   useEffect(() => {
-    // If tracker position is pending on laptop, use a relative baseline offset from target so HUD is active immediately
-    const tracker = trackerPosition || (targetLocation ? {
-      latitude: targetLocation.latitude - 0.00045,
-      longitude: targetLocation.longitude - 0.00045
-    } : null) || (demoMode ? { latitude: 23.0225, longitude: 72.5714 } : null);
-    
+    // If tracker position is pending, fallback to target's location to prevent null freeze
+    const tracker = trackerPosition || (demoMode ? { latitude: 23.0225, longitude: 72.5714 } : null);
     const target = targetLocation;
 
     if (!tracker || !target) {

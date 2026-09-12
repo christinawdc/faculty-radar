@@ -8,32 +8,13 @@ export function useGeolocation(options = {}) {
   const [error, setError] = useState(null);
   const [watching, setWatching] = useState(false);
   const watchId = useRef(null);
-  const retryTimer = useRef(null);
 
-  const handleSuccess = useCallback((pos) => {
-    setPosition({
-      latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude,
-      accuracy: pos.coords.accuracy,
-      heading: pos.coords.heading,
-      speed: pos.coords.speed,
-      timestamp: pos.timestamp,
-    });
-    setError(null);
-    setWatching(true);
-  }, []);
-
-  const handleError = useCallback((err) => {
-    setError(err);
-    // If high-accuracy timed out, retry with standard accuracy (Wi-Fi/Cellular)
-    if (err.code === 3 || err.code === 2) {
-      navigator.geolocation.getCurrentPosition(
-        handleSuccess,
-        (fallbackErr) => setError(fallbackErr),
-        { enableHighAccuracy: false, timeout: 8000, maximumAge: 30000 }
-      );
-    }
-  }, [handleSuccess]);
+  const defaultOptions = {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 5000,
+    ...options,
+  };
 
   const startWatching = useCallback(() => {
     if (!navigator.geolocation) {
@@ -41,39 +22,33 @@ export function useGeolocation(options = {}) {
       return;
     }
 
-    setWatching(true);
-
-    // 1. Instant quick position lock (low accuracy is fast & reliable indoors)
-    navigator.geolocation.getCurrentPosition(
-      handleSuccess,
-      () => {},
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
-    );
-
-    // 2. Continuous high accuracy watch
-    if (watchId.current !== null) {
-      navigator.geolocation.clearWatch(watchId.current);
-    }
-
     watchId.current = navigator.geolocation.watchPosition(
-      handleSuccess,
-      handleError,
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 3000,
-        ...options,
-      }
+      (pos) => {
+        setPosition({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          heading: pos.coords.heading,
+          speed: pos.coords.speed,
+          timestamp: pos.timestamp,
+        });
+        setError(null);
+        setWatching(true);
+      },
+      (err) => {
+        setError(err);
+        setWatching(false);
+      },
+      defaultOptions
     );
-  }, [handleSuccess, handleError, options]);
+
+    setWatching(true);
+  }, []);
 
   const stopWatching = useCallback(() => {
     if (watchId.current !== null) {
       navigator.geolocation.clearWatch(watchId.current);
       watchId.current = null;
-    }
-    if (retryTimer.current) {
-      clearInterval(retryTimer.current);
     }
     setWatching(false);
   }, []);
@@ -82,9 +57,6 @@ export function useGeolocation(options = {}) {
     return () => {
       if (watchId.current !== null) {
         navigator.geolocation.clearWatch(watchId.current);
-      }
-      if (retryTimer.current) {
-        clearInterval(retryTimer.current);
       }
     };
   }, []);
@@ -150,37 +122,7 @@ export function useDeviceOrientation() {
  * Custom hook for API communication
  */
 export function useApi() {
-  const rawApi = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
-  const baseUrl = rawApi;
-
-  const getWsBaseUrl = () => {
-    let rawWs = (import.meta.env.VITE_WS_URL || '').trim().replace(/\/+$/, '');
-
-    // Clean up accidental formatting like "wss:// https://..." or "wss://https://"
-    rawWs = rawWs.replace(/^wss?:\/\/\s*https?:\/\//i, 'wss://');
-    rawWs = rawWs.replace(/^wss?:\/\/\s+/i, 'wss://');
-    rawWs = rawWs.replace(/^https?:\/\/\s+/i, 'wss://');
-
-    if (rawWs) {
-      if (rawWs.startsWith('http://')) return rawWs.replace('http://', 'ws://');
-      if (rawWs.startsWith('https://')) return rawWs.replace('https://', 'wss://');
-      if (!rawWs.startsWith('ws://') && !rawWs.startsWith('wss://')) {
-        return `wss://${rawWs}`;
-      }
-      return rawWs;
-    }
-
-    // Auto-derive from baseUrl if configured
-    if (baseUrl) {
-      if (baseUrl.startsWith('https://')) return baseUrl.replace('https://', 'wss://');
-      if (baseUrl.startsWith('http://')) return baseUrl.replace('http://', 'ws://');
-      return `wss://${baseUrl}`;
-    }
-
-    // Fallback to current browser window host
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${protocol}//${window.location.host}`;
-  };
+  const baseUrl = import.meta.env.VITE_API_URL || '';
 
   const createSession = async (targetName = 'SARJU SIR', timeoutMinutes = 30) => {
     const res = await fetch(`${baseUrl}/api/session`, {
@@ -236,7 +178,11 @@ export function useApi() {
   };
 
   const connectWebSocket = (sessionId, onMessage) => {
-    const wsUrl = getWsBaseUrl();
+    let wsUrl = import.meta.env.VITE_WS_URL;
+    if (!wsUrl) {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsUrl = `${protocol}//${window.location.host}`;
+    }
     const ws = new WebSocket(`${wsUrl}/ws/tracker/${sessionId}`);
 
     ws.onmessage = (event) => {
