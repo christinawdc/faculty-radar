@@ -112,6 +112,12 @@ def calculate_signal_strength(last_update_time: float) -> int:
         return random.randint(1, 14)
 
 
+def parse_iso(iso_str: str) -> datetime:
+    """Safely parse ISO timestamp across Python versions"""
+    clean = iso_str.rstrip("Z") if iso_str else ""
+    return datetime.fromisoformat(clean)
+
+
 # --- API Routes ---
 
 @app.get("/api/health")
@@ -135,8 +141,8 @@ async def create_session(req: CreateSessionRequest):
         "target_name": req.target_name,
         "active": True,
         "faculty_joined": False,
-        "created_at": now.isoformat(),
-        "expires_at": (now + timedelta(minutes=timeout)).isoformat(),
+        "created_at": now.isoformat() + "Z",
+        "expires_at": (now + timedelta(minutes=timeout)).isoformat() + "Z",
         "timeout_minutes": timeout,
         "target_location": None,
         "last_update": None,
@@ -166,7 +172,7 @@ async def get_session(session_id: str):
     session = sessions[session_id]
 
     # Check expiry
-    if datetime.utcnow() > datetime.fromisoformat(session["expires_at"]):
+    if datetime.utcnow() > parse_iso(session["expires_at"]):
         session["active"] = False
 
     return {
@@ -195,7 +201,7 @@ async def join_session(session_id: str):
     if not session["active"]:
         raise HTTPException(status_code=410, detail="SESSION EXPIRED — THE WINDOW HAS CLOSED")
 
-    if datetime.utcnow() > datetime.fromisoformat(session["expires_at"]):
+    if datetime.utcnow() > parse_iso(session["expires_at"]):
         session["active"] = False
         raise HTTPException(status_code=410, detail="SESSION EXPIRED")
 
@@ -227,7 +233,7 @@ async def update_location(session_id: str, loc: LocationUpdate):
     if not session["active"]:
         raise HTTPException(status_code=410, detail="SESSION EXPIRED")
 
-    if datetime.utcnow() > datetime.fromisoformat(session["expires_at"]):
+    if datetime.utcnow() > parse_iso(session["expires_at"]):
         session["active"] = False
         raise HTTPException(status_code=410, detail="SESSION EXPIRED")
 
@@ -245,7 +251,7 @@ async def update_location(session_id: str, loc: LocationUpdate):
     }
 
     session["target_location"] = location_data
-    session["last_update"] = datetime.utcnow().isoformat()
+    session["last_update"] = datetime.utcnow().isoformat() + "Z"
 
     # Keep last 5 locations for movement detection
     session["location_history"].append(location_data)
@@ -391,7 +397,7 @@ async def tracker_websocket(websocket: WebSocket, session_id: str):
                 if session_id in sessions:
                     s = sessions[session_id]
                     # Check expiry
-                    if datetime.utcnow() > datetime.fromisoformat(s["expires_at"]):
+                    if datetime.utcnow() > parse_iso(s["expires_at"]):
                         s["active"] = False
                         await websocket.send_json({
                             "type": "session_expired",
@@ -425,7 +431,7 @@ async def cleanup_expired_sessions():
         now = datetime.utcnow()
         expired = []
         for sid, session in sessions.items():
-            if now > datetime.fromisoformat(session["expires_at"]):
+            if now > parse_iso(session["expires_at"]):
                 expired.append(sid)
 
         for sid in expired:

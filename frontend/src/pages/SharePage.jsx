@@ -51,11 +51,22 @@ export default function SharePage() {
     join();
   }, [sessionId]);
 
-  // Countdown timer
+  // Countdown timer with timezone-safe UTC parsing
   useEffect(() => {
     if (!sessionInfo?.expires_at) return;
+
+    const parseUtcDate = (dateStr) => {
+      if (!dateStr) return null;
+      const s = String(dateStr);
+      const formatted = s.endsWith('Z') || s.includes('+') ? s : `${s}Z`;
+      return new Date(formatted);
+    };
+
     const updateTimer = () => {
-      const remaining = new Date(sessionInfo.expires_at) - new Date();
+      const expires = parseUtcDate(sessionInfo.expires_at);
+      if (!expires || isNaN(expires.getTime())) return;
+
+      const remaining = expires.getTime() - Date.now();
       if (remaining <= 0) {
         setPhase('stopped');
         stopWatching();
@@ -66,10 +77,11 @@ export default function SharePage() {
         setTimeRemaining(`${mins}:${secs.toString().padStart(2, '0')}`);
       }
     };
+
     updateTimer();
     timerRef.current = setInterval(updateTimer, 1000);
     return () => clearInterval(timerRef.current);
-  }, [sessionInfo]);
+  }, [sessionInfo, stopWatching]);
 
   // Send location updates
   useEffect(() => {
