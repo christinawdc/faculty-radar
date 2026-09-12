@@ -150,7 +150,37 @@ export function useDeviceOrientation() {
  * Custom hook for API communication
  */
 export function useApi() {
-  const baseUrl = import.meta.env.VITE_API_URL || '';
+  const rawApi = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
+  const baseUrl = rawApi;
+
+  const getWsBaseUrl = () => {
+    let rawWs = (import.meta.env.VITE_WS_URL || '').trim().replace(/\/+$/, '');
+
+    // Clean up accidental formatting like "wss:// https://..." or "wss://https://"
+    rawWs = rawWs.replace(/^wss?:\/\/\s*https?:\/\//i, 'wss://');
+    rawWs = rawWs.replace(/^wss?:\/\/\s+/i, 'wss://');
+    rawWs = rawWs.replace(/^https?:\/\/\s+/i, 'wss://');
+
+    if (rawWs) {
+      if (rawWs.startsWith('http://')) return rawWs.replace('http://', 'ws://');
+      if (rawWs.startsWith('https://')) return rawWs.replace('https://', 'wss://');
+      if (!rawWs.startsWith('ws://') && !rawWs.startsWith('wss://')) {
+        return `wss://${rawWs}`;
+      }
+      return rawWs;
+    }
+
+    // Auto-derive from baseUrl if configured
+    if (baseUrl) {
+      if (baseUrl.startsWith('https://')) return baseUrl.replace('https://', 'wss://');
+      if (baseUrl.startsWith('http://')) return baseUrl.replace('http://', 'ws://');
+      return `wss://${baseUrl}`;
+    }
+
+    // Fallback to current browser window host
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}`;
+  };
 
   const createSession = async (targetName = 'SARJU SIR', timeoutMinutes = 30) => {
     const res = await fetch(`${baseUrl}/api/session`, {
@@ -206,11 +236,7 @@ export function useApi() {
   };
 
   const connectWebSocket = (sessionId, onMessage) => {
-    let wsUrl = import.meta.env.VITE_WS_URL;
-    if (!wsUrl) {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      wsUrl = `${protocol}//${window.location.host}`;
-    }
+    const wsUrl = getWsBaseUrl();
     const ws = new WebSocket(`${wsUrl}/ws/tracker/${sessionId}`);
 
     ws.onmessage = (event) => {
