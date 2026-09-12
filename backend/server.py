@@ -184,6 +184,11 @@ async def get_session(session_id: str):
         "expires_at": session["expires_at"],
         "timeout_minutes": session["timeout_minutes"],
         "has_location": session["target_location"] is not None,
+        "location": {
+            "latitude": session["target_location"]["latitude"],
+            "longitude": session["target_location"]["longitude"],
+            "accuracy": session["target_location"]["accuracy"],
+        } if session["target_location"] else None,
         "movement_status": session["movement_status"],
         "signal_strength": session["signal_strength"],
         "last_update": session["last_update"],

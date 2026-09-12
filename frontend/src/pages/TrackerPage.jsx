@@ -121,8 +121,42 @@ export default function TrackerPage() {
     };
   }, [sessionId, demoMode]);
 
+  // Dual Fallback: REST Polling every 2.5s in case WebSocket drops or is blocked
+  useEffect(() => {
+    if (!sessionId || demoMode) return;
+
+    const pollSession = async () => {
+      try {
+        const data = await api.getSession(sessionId);
+        if (data && data.active) {
+          setSessionActive(true);
+          setTargetName(data.target_name || 'TARGET');
+          if (data.faculty_joined) {
+            setFacultyJoined(true);
+          }
+          if (data.location) {
+            setTargetLocation(data.location);
+            setSignalStrength(data.signal_strength || 0);
+            setMovementStatus(data.movement_status || 'UNKNOWN');
+            setLastUpdate(data.last_update);
+          }
+          if (connectionStatus === 'DISCONNECTED') {
+            setConnectionStatus('CONNECTED');
+          }
+        }
+      } catch (err) {
+        // Silently retry next interval
+      }
+    };
+
+    pollSession();
+    const pollInterval = setInterval(pollSession, 2500);
+    return () => clearInterval(pollInterval);
+  }, [sessionId, demoMode, connectionStatus]);
+
   // Calculate distance, bearing, direction whenever positions change
   useEffect(() => {
+    // If tracker position is pending, fallback to target's location to prevent null freeze
     const tracker = trackerPosition || (demoMode ? { latitude: 23.0225, longitude: 72.5714 } : null);
     const target = targetLocation;
 
