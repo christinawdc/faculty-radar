@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/pdf-template.html",
+      "destination": "/pdf-template.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
