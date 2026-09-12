@@ -8,13 +8,32 @@ export function useGeolocation(options = {}) {
   const [error, setError] = useState(null);
   const [watching, setWatching] = useState(false);
   const watchId = useRef(null);
+  const retryTimer = useRef(null);
 
-  const defaultOptions = {
-    enableHighAccuracy: true,
-    timeout: 10000,
-    maximumAge: 5000,
-    ...options,
-  };
+  const handleSuccess = useCallback((pos) => {
+    setPosition({
+      latitude: pos.coords.latitude,
+      longitude: pos.coords.longitude,
+      accuracy: pos.coords.accuracy,
+      heading: pos.coords.heading,
+      speed: pos.coords.speed,
+      timestamp: pos.timestamp,
+    });
+    setError(null);
+    setWatching(true);
+  }, []);
+
+  const handleError = useCallback((err) => {
+    setError(err);
+    // If high-accuracy timed out, retry with standard accuracy (Wi-Fi/Cellular)
+    if (err.code === 3 || err.code === 2) {
+      navigator.geolocation.getCurrentPosition(
+        handleSuccess,
+        (fallbackErr) => setError(fallbackErr),
+        { enableHighAccuracy: false, timeout: 8000, maximumAge: 30000 }
+      );
+    }
+  }, [handleSuccess]);
 
   const startWatching = useCallback(() => {
     if (!navigator.geolocation) {
@@ -22,33 +41,39 @@ export function useGeolocation(options = {}) {
       return;
     }
 
-    watchId.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        setPosition({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          heading: pos.coords.heading,
-          speed: pos.coords.speed,
-          timestamp: pos.timestamp,
-        });
-        setError(null);
-        setWatching(true);
-      },
-      (err) => {
-        setError(err);
-        setWatching(false);
-      },
-      defaultOptions
+    setWatching(true);
+
+    // 1. Instant quick position lock (low accuracy is fast & reliable indoors)
+    navigator.geolocation.getCurrentPosition(
+      handleSuccess,
+      () => {},
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
     );
 
-    setWatching(true);
-  }, []);
+    // 2. Continuous high accuracy watch
+    if (watchId.current !== null) {
+      navigator.geolocation.clearWatch(watchId.current);
+    }
+
+    watchId.current = navigator.geolocation.watchPosition(
+      handleSuccess,
+      handleError,
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 3000,
+        ...options,
+      }
+    );
+  }, [handleSuccess, handleError, options]);
 
   const stopWatching = useCallback(() => {
     if (watchId.current !== null) {
       navigator.geolocation.clearWatch(watchId.current);
       watchId.current = null;
+    }
+    if (retryTimer.current) {
+      clearInterval(retryTimer.current);
     }
     setWatching(false);
   }, []);
@@ -57,6 +82,9 @@ export function useGeolocation(options = {}) {
     return () => {
       if (watchId.current !== null) {
         navigator.geolocation.clearWatch(watchId.current);
+      }
+      if (retryTimer.current) {
+        clearInterval(retryTimer.current);
       }
     };
   }, []);
