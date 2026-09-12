@@ -16,6 +16,7 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List
 
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -40,9 +41,9 @@ app.add_middleware(
 )
 
 # --- In-Memory Storage ---
-sessions: dict = {}
+sessions: Dict = {}
 # Maps session_id -> list of connected WebSocket clients
-tracker_connections: dict[str, list[WebSocket]] = {}
+tracker_connections: Dict[str, List[WebSocket]] = {}
 
 
 # --- Models ---
