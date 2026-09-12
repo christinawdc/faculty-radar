@@ -122,7 +122,7 @@ export function useDeviceOrientation() {
  * Custom hook for API communication
  */
 export function useApi() {
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const baseUrl = import.meta.env.VITE_API_URL || '';
 
   const createSession = async (targetName = 'SARJU SIR', timeoutMinutes = 30) => {
     const res = await fetch(`${baseUrl}/api/session`, {
@@ -178,7 +178,11 @@ export function useApi() {
   };
 
   const connectWebSocket = (sessionId, onMessage) => {
-    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
+    let wsUrl = import.meta.env.VITE_WS_URL;
+    if (!wsUrl) {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsUrl = `${protocol}//${window.location.host}`;
+    }
     const ws = new WebSocket(`${wsUrl}/ws/tracker/${sessionId}`);
 
     ws.onmessage = (event) => {

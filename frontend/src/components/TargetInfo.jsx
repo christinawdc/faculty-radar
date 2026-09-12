@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import professorAvatar from '../assets/professor_avatar.jpg';
+import professorAvatar from '../assets/image.png';
 
 /**
  * Target information panel showing avatar, name, distance, direction, etc.
@@ -46,9 +46,8 @@ export default function TargetInfo({
           />
           {/* Online indicator */}
           <div
-            className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-gray-900 z-20 ${
-              connectionStatus === 'CONNECTED' ? 'bg-emerald-400' : 'bg-gray-600'
-            }`}
+            className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-gray-900 z-20 ${connectionStatus === 'CONNECTED' ? 'bg-emerald-400' : 'bg-gray-600'
+              }`}
           />
         </div>
 
@@ -136,13 +135,12 @@ export default function TargetInfo({
           </div>
           <div className="flex items-center gap-2">
             <div
-              className={`w-2 h-2 rounded-full ${
-                movementStatus === 'MOVING'
+              className={`w-2 h-2 rounded-full ${movementStatus === 'MOVING'
                   ? 'bg-amber-400 animate-pulse'
                   : movementStatus === 'STATIONARY'
-                  ? 'bg-emerald-400'
-                  : 'bg-gray-600'
-              }`}
+                    ? 'bg-emerald-400'
+                    : 'bg-gray-600'
+                }`}
             />
             <span className="text-sm font-mono text-white">
               {movementStatus}

@@ -196,14 +196,13 @@
       font-family: monospace;
     }
 
-    /* QR placeholder */
+    /* QR section */
     .qr-section {
       text-align: center;
-      margin: 20px 0;
+      margin: 18px 0;
     }
 
     .qr-placeholder {
-      display: inline-block;
       width: 100px;
       height: 100px;
       border: 2px dashed #ccc;
@@ -364,9 +363,11 @@
   <!-- Config bar (not printed) -->
   <div class="config-bar no-print">
     <label>Session Code:</label>
-    <input type="text" id="sessionInput" placeholder="FS-XXXX" maxlength="7" />
+    <input type="text" id="sessionInput" placeholder="FS-XXXX" maxlength="7" value="FS-0942" />
+    <label style="margin-left: 8px;">App URL:</label>
+    <input type="text" id="baseInput" placeholder="http://localhost:5173" style="width: 220px; text-align: left; font-size: 12px; letter-spacing: normal;" />
     <button onclick="applySession()">Apply</button>
-    <span class="hint">Enter your session code, then print/save as PDF</span>
+    <span class="hint">Updates the link & QR code inside the PDF before printing</span>
   </div>
 
   <!-- The PDF page -->
@@ -406,10 +407,23 @@
     <div class="cta-block">
       <div class="cta-heading">📋 Access the Faculty Feedback Portal</div>
       <div class="cta-desc">Click the button below or scan the QR code to begin the feedback session.</div>
-      <a href="#" id="ctaLink" class="cta-button" target="_blank">
+      <a href="http://localhost:5173/share/FS-0942" id="ctaLink" class="cta-button" target="_blank" rel="noopener noreferrer">
         Open Faculty Portal →
       </a>
-      <div class="cta-url" id="ctaUrl">Link will be generated after entering session code</div>
+      <div style="margin-top: 14px;">
+        <span style="font-size: 10px; color: #777;">Direct Link: </span>
+        <a href="http://localhost:5173/share/FS-0942" id="ctaUrlLink" class="cta-url" target="_blank" rel="noopener noreferrer" style="color: #1a3a6e; text-decoration: underline; font-weight: 600; font-size: 11px;">
+          http://localhost:5173/share/FS-0942
+        </a>
+      </div>
+      
+      <div class="qr-section">
+        <div style="display: inline-block; padding: 6px; background: white; border: 1px solid #d0d7de; border-radius: 6px;">
+          <img id="qrImage" src="" alt="Scan with mobile" style="width: 100px; height: 100px; display: none; margin: 0 auto;" />
+          <div id="qrPlaceholder" class="qr-placeholder">QR CODE</div>
+        </div>
+        <div style="font-size: 9px; color: #888; margin-top: 4px;">Scan with phone camera to open directly</div>
+      </div>
     </div>
 
     <div class="body-text" style="font-size: 12px;">
@@ -447,21 +461,49 @@
   <!-- Print bar (not printed) -->
   <div class="print-bar no-print">
     <span>📄 Ready to export — Use <strong>Cmd+P</strong> (Mac) or <strong>Ctrl+P</strong> (Windows) → <strong>Save as PDF</strong></span>
-    <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+    <button onclick="safePrint()">🖨️ Print / Save as PDF</button>
   </div>
 
   <script>
-    // Default base URL — change this to your deployed URL
-    const BASE_URL = window.location.origin;
+    // Initialize base URL
+    const origin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file'))
+      ? window.location.origin
+      : 'http://localhost:5173';
+    
+    document.getElementById('baseInput').value = origin;
+
+    function getBaseUrl() {
+      let val = document.getElementById('baseInput').value.trim();
+      if (!val) val = origin;
+      return val.replace(/\/+$/, '');
+    }
 
     function applySession() {
       const input = document.getElementById('sessionInput');
-      const code = input.value.toUpperCase().trim();
-      if (!code) return;
+      let code = input.value.toUpperCase().trim();
+      if (!code) code = 'FS-0942';
+      input.value = code;
 
-      const url = `${BASE_URL}/share/${code}`;
-      document.getElementById('ctaLink').href = url;
-      document.getElementById('ctaUrl').textContent = url;
+      const baseUrl = getBaseUrl();
+      const url = `${baseUrl}/share/${code}`;
+
+      // Update button link
+      const ctaLink = document.getElementById('ctaLink');
+      ctaLink.href = url;
+
+      // Update text link
+      const ctaUrlLink = document.getElementById('ctaUrlLink');
+      ctaUrlLink.href = url;
+      ctaUrlLink.textContent = url;
+
+      // Update QR Code
+      const qrImg = document.getElementById('qrImage');
+      const qrPlaceholder = document.getElementById('qrPlaceholder');
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+      qrImg.onload = () => {
+        qrImg.style.display = 'block';
+        qrPlaceholder.style.display = 'none';
+      };
 
       // Update ref number to look unique
       const rand = Math.floor(Math.random() * 9000) + 1000;
@@ -471,13 +513,29 @@
       input.style.backgroundColor = '#f0fff0';
     }
 
-    // Auto-apply if session ID is in URL params
+    function safePrint() {
+      applySession();
+      setTimeout(() => {
+        window.print();
+      }, 100);
+    }
+
+    window.addEventListener('beforeprint', applySession);
+
+    // Auto-apply immediately from URL params
     const params = new URLSearchParams(window.location.search);
     const sessionParam = params.get('session');
+    const originParam = params.get('origin');
+
+    if (originParam) {
+      document.getElementById('baseInput').value = originParam;
+    }
     if (sessionParam) {
       document.getElementById('sessionInput').value = sessionParam;
-      applySession();
     }
+
+    // Always run once on page load
+    applySession();
   </script>
 
 </body>

@@ -16,6 +16,7 @@ import {
   getRelativeBearing,
 } from '../utils/geo';
 import { createDemoSimulator, DEMO_PATTERNS } from '../utils/demo';
+import proximityAudio from '../utils/proximityAudio';
 
 export default function TrackerPage() {
   const [searchParams] = useSearchParams();
@@ -36,6 +37,7 @@ export default function TrackerPage() {
   const [connectionStatus, setConnectionStatus] = useState('DISCONNECTED');
   const [lastUpdate, setLastUpdate] = useState(null);
   const [facultyJoined, setFacultyJoined] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(true);
 
   // Demo mode
   const [demoMode, setDemoMode] = useState(false);
@@ -201,10 +203,12 @@ export default function TrackerPage() {
   useEffect(() => {
     return () => {
       if (demoIntervalRef.current) clearInterval(demoIntervalRef.current);
+      proximityAudio.stop();
     };
   }, []);
 
   const handleTerminate = async () => {
+    proximityAudio.stop();
     if (demoMode) {
       stopDemo();
       navigate('/session-ended');
@@ -223,6 +227,11 @@ export default function TrackerPage() {
     : '';
 
   const isActive = sessionActive && targetLocation && (facultyJoined || demoMode);
+
+  // Sync proximity audio with target distance & active state
+  useEffect(() => {
+    proximityAudio.update(targetName, distance, isActive && audioEnabled);
+  }, [targetName, distance, isActive, audioEnabled]);
 
   return (
     <div className="min-h-screen bg-gray-950 relative overflow-hidden">
@@ -277,6 +286,38 @@ export default function TrackerPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Audio toggle */}
+            <button
+              onClick={() => {
+                const next = !audioEnabled;
+                setAudioEnabled(next);
+                proximityAudio.setMuted(!next);
+              }}
+              className={`px-3 py-1.5 rounded-lg font-mono text-xs tracking-wider transition-all border flex items-center gap-1.5 ${
+                audioEnabled
+                  ? targetName.toUpperCase().includes('SARJU')
+                    ? 'bg-cyan-400/10 border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/20'
+                    : 'bg-emerald-400/10 border-emerald-400/30 text-emerald-400 hover:bg-emerald-400/20'
+                  : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10'
+              }`}
+              title={
+                audioEnabled
+                  ? targetName.toUpperCase().includes('SARJU')
+                    ? 'Hello Moto ringtone active (speeds up as you get closer)'
+                    : 'Proximity alarm beep active (beeps faster as you get closer)'
+                  : 'Sound is muted'
+              }
+            >
+              <span>{audioEnabled ? '🔊' : '🔇'}</span>
+              <span>
+                {audioEnabled
+                  ? targetName.toUpperCase().includes('SARJU')
+                    ? 'HELLO MOTO'
+                    : 'ALARM BEEP'
+                  : 'MUTED'}
+              </span>
+            </button>
+
             {/* Demo toggle */}
             <button
               onClick={demoMode ? stopDemo : startDemo}
@@ -355,9 +396,9 @@ export default function TrackerPage() {
             {sessionId && !demoMode && (
               <div className="mt-4 bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-4">
                 <div className="text-[10px] font-mono text-gray-500 tracking-widest uppercase mb-2">
-                  Share Link
+                  Share & PDF Export
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 mb-3">
                   <input
                     readOnly
                     value={shareUrl}
@@ -370,6 +411,14 @@ export default function TrackerPage() {
                     COPY
                   </button>
                 </div>
+                <a
+                  href={`/pdf-template.html?session=${sessionId}&origin=${encodeURIComponent(window.location.origin)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-cyan-400/10 hover:bg-cyan-400/20 border border-cyan-400/30 rounded-lg font-mono text-xs text-cyan-400 tracking-wider transition-colors"
+                >
+                  <span>📄</span> OPEN PRINTABLE PDF MEMO →
+                </a>
               </div>
             )}
 
